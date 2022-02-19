@@ -1,0 +1,17 @@
+---
+- name: "Ensure {{ CERT_PATH }} exists as a directory"
+  file:
+    path: "{{ CERT_PATH }}"
+    state: directory
+
+- name: Copy existing wildcard certificate
+  block:
+    - name: Copy wildcard cert data
+      template:
+        src: "./files/{{ item }}"
+        dest: "{{ CERT_PATH }}/{{ item }}"
+        mode: "0644"
+      with_items:
+        - wildcard.crt
+        - wildcard.key
+  when: not GENERATE_CERTS

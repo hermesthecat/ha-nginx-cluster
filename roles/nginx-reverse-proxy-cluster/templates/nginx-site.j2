@@ -1,0 +1,65 @@
+###############################################################
+# NGINX config file for {{ PRIMARY_DOMAIN }} - Managed by Ansible
+###############################################################
+
+{% if not GENERATE_CERTS %}
+ssl_certificate {{ CERT_PATH }}/wildcard.crt;
+ssl_certificate_key {{ CERT_PATH }}/wildcard.key;
+{% endif %}
+
+server {
+    listen 80;
+    server_name *.{{ item.DOMAIN }};
+    rewrite ^ https://$host$request_uri? permanent;
+}
+
+# The default server. Return 404 if subdomain not found
+server {
+  listen       443 ssl default_server;
+  server_name  everythingelse;
+
+  location / {
+    return 404; #return the code 404
+  }
+}
+
+{% for site in item.SUBDOMAINS %}
+
+{% if site.ip_addresses|length > 1 %}
+
+upstream {{ site.name }}_servers {
+    
+    {% for ip in site.ip_addresses %}
+    server {{ ip }}:{{ site.port }} {% if site.prioritise_first and not ip | first %}backup{% endif %};
+    {% endfor %}
+}
+
+{% endif %}
+
+server {
+    {% if GENERATE_CERTS %}
+    ssl_certificate {{ CERT_PATH }}/{{ site.name }}.crt;
+    ssl_certificate_key {{ CERT_PATH }}/{{ site.name }}.key;
+    {% endif %}
+    listen 443 ssl;
+    server_name {{ site.name }}.{{ item.DOMAIN }};
+
+    location / {
+
+        {% if site.ip_addresses|length == 1 %}
+        proxy_pass              {{ site.mode }}://{{ site.ip_addresses | first }}:{{ site.port }};
+        {% else %}
+        proxy_pass              {{ site.mode }}://{{ site.name }}_servers;
+        {% endif %}
+        
+        {% for ip in site.whitelist_ips %}
+        allow {{ ip }};
+            deny all;
+        {% endfor %}
+        {% for parameter in site.additional_parameters %}
+        {{ parameter }};
+        {% endfor %}
+    }
+}
+
+{% endfor %}

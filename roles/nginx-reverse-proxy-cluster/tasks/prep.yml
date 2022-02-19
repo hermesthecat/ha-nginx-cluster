@@ -1,0 +1,30 @@
+---
+- name: Disable cloud-init
+  file:
+    path: /etc/cloud/cloud-init.disabled
+    state: touch
+
+- name: Delete cloud config file
+  file:
+    path: /etc/cloud/cloud.cfg
+    state: absent
+
+- name: Remove packer user
+  user:
+    name: packer
+    state: absent
+    remove: yes
+
+- name: Add node ips to host file
+  template:
+    src: ./templates/hosts.j2
+    dest: /etc/hosts
+
+- name: Open additional UFW TCP ports for nginx
+  ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ item }}"
+  with_items:
+    - 636
+  

@@ -1,0 +1,58 @@
+---
+- name: Install nginx
+  apt:
+    name: 
+        - nginx
+    state: latest
+    update_cache: yes
+
+- name: Open required UFW TCP ports for nginx
+  ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ item }}"
+  with_items:
+    - 80
+    - 443
+
+- name: Remove nginx default site
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/etc/nginx/sites-enabled/default"
+    - "/etc/nginx/sites-available/default"
+
+- name: Generate nginx default configurations
+  template:
+    src: "./templates/nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+  with_items: "{{ NGINX_SITES }}"
+  no_log: true
+
+- name: Generate nginx site configurations
+  template:
+    src: "./templates/nginx-site.j2"
+    dest: "/etc/nginx/sites-available/{{ item.DOMAIN }}"
+  with_items: "{{ NGINX_SITES }}"
+  no_log: true
+
+-  name: Test nginx condfiguration
+   command: nginx -t
+   register: nginx_conf_result
+
+- name: Create symlink to enable sites
+  file:
+    src: "/etc/nginx/sites-available/{{ item.DOMAIN }}"
+    dest: "/etc/nginx/sites-enabled/{{ item.DOMAIN }}"
+    state: link
+  with_items: "{{ NGINX_SITES }}"
+  no_log: true
+
+- name: Make sure nginx is started and enabled
+  sysvinit:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+  with_items:
+    - nginx

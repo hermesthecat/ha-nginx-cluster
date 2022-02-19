@@ -1,0 +1,1 @@
+NGINX_AUTHPASS: "{{ lookup('password', '/tmp/passwordfile_nginx_auth chars=ascii_letters,digits length=32') }}"

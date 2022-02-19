@@ -1,0 +1,33 @@
+- name: "Ensure {{ CERT_PATH }} exists as a directory"
+  file:
+    path: "{{ CERT_PATH }}"
+    state: directory
+
+- name: Request a new server cert
+  uri: 
+    url: "{{ VAULT_CERT_REQUEST_PATH }}/issue/{{ item.DOMAIN }}"
+    method: POST
+    return_content: yes
+    body_format: json
+    body:
+      common_name: "{{ item.SUBDOMAINS.name }}.{{ item.DOMAIN }}"
+      # alt_names: "localhost"
+      ip_sans: "{{ ansible_default_ipv4.address }}"
+    headers:
+      X-Vault-Token: "{{ lookup('env','VAULT_TOKEN') }}"
+  register: cert_data
+
+- name: Create certs from returned data
+  template:
+    src: "./templates/cert.crt"
+    dest: "{{ CERT_PATH }}/{{ item.name }}.crt"
+    mode: "0644"
+
+- name: Create certs from returned data
+  template:
+    src: "./templates/key.key"
+    dest: "{{ CERT_PATH }}/{{ item.name }}.key"
+    mode: "0644"
+
+
+

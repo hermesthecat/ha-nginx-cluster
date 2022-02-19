@@ -1,0 +1,65 @@
+###############################################################
+# Keepalived config file - Managed by Ansible
+###############################################################
+
+global_defs {
+    lvs_id {{ ansible_hostname }}
+    enable_script_security
+    script_user {{ KEEPALIVED_SCRIPT_USER }}
+}
+vrrp_sync_group SyncGroup01 {
+    group {
+        VI_1
+    }
+}
+vrrp_script chknginx {
+    script "/usr/bin/killall -0 nginx"
+    script "/usr/sbin/service nginx start"
+    interval 9
+    timeout 3
+    weight 20
+    rise 2
+    fall 4
+}
+vrrp_instance VI_1 {
+    interface {{ ansible_default_ipv4.interface }}                # interface to monitor
+{% for host in NGINX_HOSTS %}
+  {% if host.HOSTNAME in ansible_hostname %}
+    state {{ host.STATE }}
+  {% endif %}
+{% endfor %}
+    virtual_router_id 51          # Assign one ID for this route
+
+{% for host in NGINX_HOSTS %}
+  {% if host.HOSTNAME in ansible_hostname %}
+    priority {{ host.KEEPALIVED_PRIORITY }}
+  {% endif %}
+{% endfor %}
+
+    advert_int 5
+    authentication {
+        auth_type PASS
+        auth_pass {{ NGINX_AUTHPASS }}
+    }
+    unicast_src_ip {{ ansible_default_ipv4.interface }}   # IP address of local interface
+    unicast_peer {            # IP address of peer interface
+
+{% for host in NGINX_HOSTS %}
+  {% if host.HOSTNAME not in ansible_hostname %}
+    {{ host.IP }}
+  {% endif %}
+{% endfor %}
+    }
+
+    virtual_ipaddress {
+
+    {% for ip in NGINX_SHARED_IPS %}
+      {{ ip.ip }}   #{{ ip.purpose }}    
+    {% endfor %}
+
+
+    }
+    track_script {
+        chknginx
+    }
+}

@@ -1,0 +1,29 @@
+---
+- name: Install keepalived
+  apt:
+    name: 
+        - keepalived
+    state: latest
+    update_cache: yes
+
+- name: Copy keepalived config file
+  template:
+    src: ./templates/keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Open required TCP ports for keepalived
+  ufw:
+    rule: allow
+    proto: tcp
+    port: "{{ item }}"
+  with_items:
+    - 112
+    # - 51
+
+- name: Make sure keepalived is started and enabled
+  sysvinit:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+  with_items:
+    - keepalived

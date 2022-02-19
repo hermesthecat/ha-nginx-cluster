@@ -1,0 +1,23 @@
+---
+- name: Check if root ca cert exists
+  stat:
+    path: "{{ CERT_PATH }}/ca.crt"
+  register: root_ca_exists
+
+- name: Request root cert if the ssl cert doesn't exist
+  block:
+    - name: Request the root ca in pem format
+      uri:
+        url: "{{ VAULT_CERT_REQUEST_PATH }}/ca_chain"
+        method: GET
+        return_content: yes
+      register: ca_data
+
+    - name: Create certs from returned data
+      template:
+        src: "./templates/ca.crt"
+        dest: "{{ CERT_PATH }}/ca.crt"
+        mode: "0644"
+      with_items:
+        - "ca.crt"
+  when: not root_ca_exists.stat.exists
