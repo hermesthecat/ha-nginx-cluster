@@ -1,16 +1,8 @@
 ## Hashicorp Vault Stuff
 variable "vault_token" {}
 
-variable "domain_name" {
-    default = "domain.com"
-}
-
-// variable "proxmox_host_api_url" {
-//     default = "https://10.10.10.69:8006/api2/json"
-// }
-
 variable "proxmox_host_api_url" {
-    default = "https://${{ var.domain_name }}.com/api2/json"
+    default = "https://pve.random-domain.com/api2/json"
 }
 
 variable "template_name" {
@@ -18,7 +10,7 @@ variable "template_name" {
 }
 
 provider "vault" {
-address = "https://hc-vault.${{ var.domain_name}}.com/"
+address = "https://hc-vault.random-domain.com/"
 skip_tls_verify = false
 token = "${var.vault_token}"
 }

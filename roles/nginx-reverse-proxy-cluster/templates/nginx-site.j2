@@ -54,8 +54,8 @@ server {
         
         {% for ip in site.whitelist_ips %}
         allow {{ ip }};
-            deny all;
         {% endfor %}
+            deny all;
         {% for parameter in site.additional_parameters %}
         {{ parameter }};
         {% endfor %}

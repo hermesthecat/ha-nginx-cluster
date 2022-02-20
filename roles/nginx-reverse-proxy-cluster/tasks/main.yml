@@ -12,7 +12,7 @@
 - name: Include ssl-root-cert.yml
   include_tasks: ssl-root-cert.yml
   when: GENERATE_CERTS
-  no_log: true
+  no_log: yes
 
 - name: Generate ssl certs
   block:
@@ -20,7 +20,7 @@
       include_tasks: ssl-cert-request.yml
       with_items: "{{ NGINX_SITES }}"
   when: GENERATE_CERTS
-  no_log: true
+  no_log: yes
 
 - name: Include keepalived.yml
   include_tasks: keepalived.yml

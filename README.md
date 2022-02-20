@@ -1,12 +1,13 @@
 # ansible-nginx-reverse-proxy-cluster
 # Warning
-This codebase is pretty opinionated towards my own set up. You could just use [Jeff Geerlings](https://github.com/geerlingguy/ansible-role-nginx) role, or as his github shows, use the [official nginx](https://github.com/nginxinc/ansible-role-nginx) role.
+This codebase is pretty opinionated towards my own set up. You could just use [Jeff Geerlings](https://github.com/geerlingguy/ansible-role-nginx) role, or as his github shows, use the [official nginx](https://github.com/nginxinc/ansible-role-nginx) role, install keepalived and manage the nginx config yourself.
 
 # Info
 This role will set up a 3 node nginx reverse proxy cluster in ha mode using keepalived.
 
 ## To Do
 [] I really should be adding tests to my roles
+[] Add option to add basic auth to subdomain
 
 # Configuration
 ## Terraform
@@ -35,7 +36,7 @@ make create-vm-and-run-playbook
 ## Ansible
 1. Edit the inventory file to contain the ip addresses of your nginx nodes
 2. edit the vars in vars/main.yml to reflect your requirements. Node information is stored here. 
-   ```NGINX_SHARED_IP``` is the floating ip shared between your hosts
+   ```NGINX_SHARED_IP``` is a list of the floating ips shared between your hosts
 
    Set ```GENERATE_CERTS``` to no if you don't have Hashicorp Vault. If set to no, you will need to add in your cert data to relevant files under ./files/
    

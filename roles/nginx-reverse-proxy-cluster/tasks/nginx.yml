@@ -28,14 +28,14 @@
     src: "./templates/nginx.conf.j2"
     dest: "/etc/nginx/nginx.conf"
   with_items: "{{ NGINX_SITES }}"
-  no_log: true
+  no_log: yes
 
 - name: Generate nginx site configurations
   template:
     src: "./templates/nginx-site.j2"
     dest: "/etc/nginx/sites-available/{{ item.DOMAIN }}"
   with_items: "{{ NGINX_SITES }}"
-  no_log: true
+  no_log: yes
 
 -  name: Test nginx condfiguration
    command: nginx -t
@@ -47,7 +47,7 @@
     dest: "/etc/nginx/sites-enabled/{{ item.DOMAIN }}"
     state: link
   with_items: "{{ NGINX_SITES }}"
-  no_log: true
+  no_log: yes
 
 - name: Make sure nginx is started and enabled
   sysvinit:

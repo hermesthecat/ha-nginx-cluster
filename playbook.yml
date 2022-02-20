@@ -1,5 +1,5 @@
 ---
--  name: Provision a template vm
+-  name: Provision a highly available nginx cluster
    hosts: nginx-cluster
    become: yes
    become_user: root
